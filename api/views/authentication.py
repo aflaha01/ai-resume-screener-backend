@@ -7,6 +7,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 @api_view(['POST'])
 def register(request):
+
+    """
+    Author: Aflaha on Jan 26, 2026
+    Purpose: Registers a new user account.
+    Input parameters: username, password
+    Return: Returns success message or error message with status code
+    """
+
     username = request.data.get('username')
     password = request.data.get('password')
 
@@ -22,6 +30,14 @@ def register(request):
 
 @api_view(['POST'])
 def login(request):
+    
+    """
+    Author: Aflaha on Jan 26, 2026
+    Purpose: Authenticates a user and returns JWT access and refresh tokens.
+    Input parameters: username, password
+    Return: Returns access token, refresh token, message, and status code
+    """
+    
     username = request.data.get('username')
     password = request.data.get('password')
 

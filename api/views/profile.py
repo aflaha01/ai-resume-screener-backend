@@ -1,34 +1,41 @@
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-# from db.models import Profile
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from db.models.profile import UserProfile
+from api.serializers.profile import ProfileSaveSerializer
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def get_profile(request, profile_id):
-#     try:
-#         profile = Profile.objects.get(
-#             id=profile_id,
-#             user=request.user
-#         )
-#     except Profile.DoesNotExist:
-#         return Response(
-#             {"message": "Profile not found"},
-#             status=404
-#         )
+class SaveProfileView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     return Response(
-#         {
-#             "name": profile.name,
-#             "email": profile.email,
-#             "phone": profile.phone,
-#             "summary": profile.summary,
-#             "skills": profile.skills,
-#             "education": profile.education,
-#             "experience": profile.experience,
-#             "projects": profile.projects,
-#             "certifications": profile.certifications,
-#         },
-#         status=200
-#     )
+    def post(self, request):
+
+        """
+        Author: Aflaha on Feb 4, 2026
+        Purpose: Saves or updates the authenticated user's profile data.
+        Input parameters: profile data (JSON payload)
+        Return: Returns saved profile data, created flag, message, and status code
+        """
+
+        serializer = ProfileSaveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        profile_data = serializer.validated_data
+        user = request.user
+
+        profile_obj, created = UserProfile.objects.update_or_create(
+            user=user,
+            defaults={
+                "profile_json": profile_data
+            }
+        )
+
+        return Response(
+            {
+                "message": "Profile saved successfully",
+                "created": created,
+                "profile": profile_obj.profile_json
+            },
+            status=status.HTTP_200_OK
+        )

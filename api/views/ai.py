@@ -1,3 +1,4 @@
+import traceback
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,6 +8,14 @@ from api.utils.llm_parser import enhance_summary_with_llm, generate_summary_with
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def enhance_summary(request):
+
+    """
+    Author: Aflaha on Jan 30, 2026
+    Purpose: Enhances and improves the user's professional summary using LLM.
+    Input parameters: summary (list of summary strings)
+    Return: Returns enhanced summary list and status code
+    """
+
     summary = request.data.get("summary")
 
     if not summary or not isinstance(summary, list):
@@ -31,6 +40,14 @@ def enhance_summary(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_summary(request):
+
+    """
+    Author: Aflaha on Jan 30, 2026
+    Purpose: Generates a professional summary using user skills, experience, projects, and education via LLM.
+    Input parameters: skills, experience, projects, education (lists)
+    Return: Returns generated summary list and status code
+    """
+
     try:
         context = {
             "skills": request.data.get("skills") or [],

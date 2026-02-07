@@ -1,20 +1,16 @@
-# # db/models/profile.py
-# from django.db import models
-# from django.contrib.auth.models import User
+from django.conf import settings
+from django.db import models
 
-# class Profile(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     resume = models.OneToOneField("Resume", on_delete=models.CASCADE)
-    
-#     name = models.CharField(max_length=255, blank=True)
-#     email = models.EmailField(blank=True)
-#     phone = models.CharField(max_length=20, blank=True)
 
-#     summary = models.JSONField(default=list)
-#     skills = models.JSONField(default=list)
-#     education = models.JSONField(default=list)
-#     experience = models.JSONField(default=list)
-#     projects = models.JSONField(default=list)
-#     certifications = models.JSONField(default=list)
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile"
+    )
+    profile_json = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-#     created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"Profile of {self.user}"

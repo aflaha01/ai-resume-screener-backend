@@ -7,16 +7,31 @@ from api.utils.llm_parser import parse_resume_with_llm
 
 
 def extract_text_from_pdf(path):
+
+    """
+    Author: Aflaha on Jan 30, 2026
+    Purpose: Extracts plain text content from an uploaded PDF resume file.
+    Input parameters: path (file path to PDF)
+    Return: Returns extracted text as a single string
+    """
+
     text = ""
     with pdfplumber.open(path) as pdf:
         for page in pdf.pages:
             text += page.extract_text() or ""
     return text
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def upload_resume(request):
+
+    """
+    Author: Aflaha on Jan 30, 2026
+    Purpose: Uploads a resume PDF, extracts text, parses resume data using LLM, and returns structured profile data.
+    Input parameters: resume (PDF file)
+    Return: Returns resume_id, parsed profile data, message, and status code
+    """
+
     file = request.FILES.get("resume")
 
     if not file:
@@ -38,20 +53,8 @@ def upload_resume(request):
     # LLM-only parsing
     parsed_data = parse_resume_with_llm(text)
 
-    # profile = Profile.objects.create(
-    #     user=request.user,
-    #     resume=resume,
-    #     name=parsed_data["name"],
-    #     email=parsed_data["email"],
-    #     phone=parsed_data["phone"],
-    #     summary=parsed_data["summary"],
-    #     skills=parsed_data["skills"],
-    #     education=parsed_data["education"],
-    #     experience=parsed_data["experience"],
-    #     projects=parsed_data["projects"],
-    #     certifications=parsed_data["certifications"],
-    # )
-
+    
+    print(parsed_data)
     return Response(
         {
             "message": "Resume processed successfully",
