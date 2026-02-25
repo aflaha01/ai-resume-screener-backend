@@ -190,3 +190,51 @@ def generate_summary_with_llm(context: dict) -> list[str]:
         return []
 
 
+def generate_job_description_with_llm(context: dict) -> str:
+    """
+    Purpose: Generates a professional Job Description using LLM
+    Input: title, skills, experience_level, location, job_type, notes
+    Return: JD as a single formatted string
+    """
+
+    prompt = f"""
+You are an experienced HR professional.
+
+Create a clear, professional, and well-structured job description using the details below.
+
+Job Title: {context.get("title", "")}
+Key Skills: {", ".join(context.get("skills", []))}
+Experience Level: {context.get("experience_level", "")}
+Job Type: {context.get("job_type", "")}
+Location: {context.get("location", "")}
+
+Additional Notes:
+{context.get("notes", "")}
+
+The job description should include:
+- Role overview
+- Key responsibilities
+- Required skills
+- Preferred qualifications
+- Benefits (if applicable)
+
+Keep the tone professional and concise.
+"""
+
+    try:
+        response = client.models.generate_content(
+            model="models/gemini-2.5-flash",
+            contents=prompt,
+        )
+
+        raw_text = response.text.strip()
+
+        print("===== GENERATED JOB DESCRIPTION RAW =====")
+        print(raw_text)
+        print("========================================")
+
+        return raw_text
+
+    except Exception as e:
+        print("LLM generate job description failed:", str(e))
+        return ""

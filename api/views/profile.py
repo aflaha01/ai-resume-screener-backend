@@ -10,14 +10,6 @@ class SaveProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
-        """
-        Author: Aflaha on Feb 4, 2026
-        Purpose: Saves or updates the authenticated user's profile data.
-        Input parameters: profile data (JSON payload)
-        Return: Returns saved profile data, created flag, message, and status code
-        """
-
         serializer = ProfileSaveSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -31,11 +23,37 @@ class SaveProfileView(APIView):
             }
         )
 
+        user.onboarding_completed = True
+        user.save(update_fields=["onboarding_completed"])
+
         return Response(
             {
                 "message": "Profile saved successfully",
+                "onboarding_completed": True,
                 "created": created,
                 "profile": profile_obj.profile_json
             },
+            status=status.HTTP_200_OK
+        )
+
+
+class GetSkillsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            profile_obj = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {"skills": []},
+                status=status.HTTP_200_OK
+            )
+
+        skills = profile_obj.profile_json.get("skills", [])
+
+        return Response(
+            {"skills": skills},
             status=status.HTTP_200_OK
         )

@@ -1,8 +1,9 @@
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
+User = get_user_model()
 
 
 @api_view(['POST'])
@@ -17,15 +18,37 @@ def register(request):
 
     username = request.data.get('username')
     password = request.data.get('password')
+    user_type = request.data.get('user_type')  
 
-    if not username or not password:
-        return Response({"error": "Username and password required"}, status=400)
+    if not username or not password or not user_type:
+        return Response(
+            {"error": "Username, password and user_type are required"},
+            status=400
+        )
+
+    if user_type not in ["HR", "JOB_SEEKER"]:
+        return Response(
+            {"error": "Invalid user_type"},
+            status=400
+        )
 
     if User.objects.filter(username=username).exists():
-        return Response({"error": "User already exists"}, status=400)
+        return Response(
+            {"error": "User already exists"},
+            status=400
+        )
 
-    User.objects.create_user(username=username, password=password)
-    return Response({"message": "User registered successfully"})
+    # Create user with role
+    User.objects.create_user(
+        username=username,
+        password=password,
+        user_type=user_type
+    )
+
+    return Response(
+        {"message": "User registered successfully"},
+        status=201
+    )
 
 
 @api_view(['POST'])
@@ -40,13 +63,11 @@ def login(request):
     
     username = request.data.get('username')
     password = request.data.get('password')
+    user_type = request.data.get('user_type') 
 
-    if not username or not password:
+    if not username or not password or not user_type:
         return Response(
-            {
-                "message": "Username and password are required",
-                "statusCode": 400
-            },
+            {"message": "Username, password, and user_type are required"},
             status=400
         )
 
@@ -54,11 +75,14 @@ def login(request):
 
     if not user:
         return Response(
-            {
-                "message": "Invalid username or password",
-                "statusCode": 401
-            },
+            {"message": "Invalid username or password"},
             status=401
+        )
+
+    if user.user_type != user_type:
+        return Response(
+            {"message": "You are not allowed to login as this role"},
+            status=403
         )
 
     refresh = RefreshToken.for_user(user)
@@ -68,7 +92,8 @@ def login(request):
             "message": "Login successful",
             "access": str(refresh.access_token),
             "refresh": str(refresh),
-            "statusCode": 200
+            "user_type": user.user_type,
+            "onboarding_completed": user.onboarding_completed
         },
         status=200
     )

@@ -2,7 +2,8 @@ import traceback
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from api.utils.llm_parser import enhance_summary_with_llm, generate_summary_with_llm
+from api.utils.llm_parser import enhance_summary_with_llm, generate_summary_with_llm,generate_job_description_with_llm
+
 
 
 @api_view(["POST"])
@@ -12,7 +13,7 @@ def enhance_summary(request):
     """
     Author: Aflaha on Jan 30, 2026
     Purpose: Enhances and improves the user's professional summary using LLM.
-    Input parameters: summary (list of summary strings)
+    Input parameters: summary
     Return: Returns enhanced summary list and status code
     """
 
@@ -44,7 +45,7 @@ def generate_summary(request):
     """
     Author: Aflaha on Jan 30, 2026
     Purpose: Generates a professional summary using user skills, experience, projects, and education via LLM.
-    Input parameters: skills, experience, projects, education (lists)
+    Input parameters: skills, experience, projects, education
     Return: Returns generated summary list and status code
     """
 
@@ -76,6 +77,42 @@ def generate_summary(request):
         return Response(
             {
                 "message": "Failed to generate summary",
+                "error": str(e),
+            },
+            status=500
+        )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def generate_job_description(request):
+    """
+    Author: Aflaha
+    Purpose: Generates job description using AI
+    """
+
+    try:
+        context = {
+            "title": request.data.get("title"),
+            "skills": request.data.get("skills", []),
+            "experience_level": request.data.get("experience_level"),
+            "job_type": request.data.get("job_type"),
+            "location": request.data.get("location"),
+            "notes": request.data.get("notes"),
+        }
+
+        jd = generate_job_description_with_llm(context)
+
+        return Response(
+            {"job_description": jd},
+            status=200
+        )
+
+    except Exception as e:
+        traceback.print_exc()
+        return Response(
+            {
+                "message": "Failed to generate job description",
                 "error": str(e),
             },
             status=500
